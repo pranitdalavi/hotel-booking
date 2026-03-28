@@ -1,0 +1,147 @@
+name: CI / CD
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v4
+        with:
+          php-version: '8.3'
+          extensions: mbstring, curl, xml, ctype, json, bcmath, zip, mysql
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+
+      - name: Install NPM dependencies
+        run: npm install
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Prepare environment for tests
+        run: |
+          touch database/database.sqlite
+          cp .env.example .env
+          php artisan key:generate --force
+
+      - name: Run tests
+        run: php artisan test -- --testdox
+
+  deploy:
+    name: Deploy to InfinityFree
+    needs: build
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v4
+        with:
+          php-version: '8.3'
+          extensions: mbstring, curl, xml, ctype, json, bcmath, zip, mysql
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+
+      - name: Install NPM dependencies
+        run: npm install
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Prepare deployment package
+        run: |
+          rm -rf /tmp/deploy
+          mkdir -p /tmp/deploy/root
+          mkdir -p /tmp/deploy/root/laravel_app
+          rsync -a --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='tests' --exclude='public' ./ /tmp/deploy/root/laravel_app
+          cp -r public/* /tmp/deploy/root
+          cp public/.htaccess /tmp/deploy/root
+          python3 - <<'PY'
+from pathlib import Path
+path = Path('/tmp/deploy/root/index.php')
+content = path.read_text()
+content = content.replace("require __DIR__.'/../vendor/autoload.php';", "require __DIR__.'/laravel_app/vendor/autoload.php';")
+content = content.replace("$app = require_once __DIR__.'/../bootstrap/app.php';", "$app = require_once __DIR__.'/laravel_app/bootstrap/app.php';")
+path.write_text(content)
+PY
+          mkdir -p /tmp/deploy/root/laravel_app/storage /tmp/deploy/root/laravel_app/bootstrap/cache
+          APP_KEY=$(php -r "echo 'base64:' . base64_encode(random_bytes(32));")
+          cat > /tmp/deploy/root/laravel_app/.env <<EOF
+APP_NAME=HotelBooking
+APP_ENV=production
+APP_KEY=${APP_KEY}
+APP_DEBUG=false
+APP_URL=${{ secrets.APP_URL }}
+APP_LOCALE=en
+APP_FALLBACK_LOCALE=en
+APP_FAKER_LOCALE=en_US
+APP_MAINTENANCE_DRIVER=file
+BCRYPT_ROUNDS=12
+LOG_CHANNEL=stack
+LOG_STACK=single
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=debug
+DB_CONNECTION=mysql
+DB_HOST=${{ secrets.DB_HOST }}
+DB_PORT=${{ secrets.DB_PORT }}
+DB_DATABASE=${{ secrets.DB_DATABASE }}
+DB_USERNAME=${{ secrets.DB_USERNAME }}
+DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+SESSION_DRIVER=database
+SESSION_LIFETIME=120
+SESSION_ENCRYPT=false
+SESSION_PATH=/
+SESSION_DOMAIN=null
+BROADCAST_CONNECTION=log
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=database
+CACHE_STORE=database
+REDIS_CLIENT=phpredis
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+MAIL_MAILER=log
+MAIL_SCHEME=null
+MAIL_HOST=127.0.0.1
+MAIL_PORT=2525
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_FROM_ADDRESS=hello@example.com
+MAIL_FROM_NAME=HotelBooking
+EOF
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: /tmp/deploy/root
+          server-dir: /htdocs
+          delete: true

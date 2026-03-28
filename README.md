@@ -56,3 +56,21 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## GitHub Actions CI/CD
+
+This repository includes a workflow at `.github/workflows/deploy.yml`.
+
+To use it with InfinityFree or another FTP-based host, add the following repository secrets:
+
+- `FTP_HOST`
+- `FTP_USERNAME`
+- `FTP_PASSWORD`
+- `APP_URL`
+- `DB_HOST`
+- `DB_PORT`
+- `DB_DATABASE`
+- `DB_USERNAME`
+- `DB_PASSWORD`
+
+Push to `main` to trigger automatic build and deploy.
