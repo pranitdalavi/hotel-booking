@@ -19,7 +19,9 @@ COPY . .
 # Set Apache document root to Laravel's public folder
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
-# Enable Apache rewrite module
+# Ensure only one Apache MPM is enabled and enable rewrite
+RUN a2dismod mpm_event mpm_worker || true
+RUN a2enmod mpm_prefork
 RUN a2enmod rewrite
 
 # Run composer
