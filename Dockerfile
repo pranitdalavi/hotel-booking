@@ -1,48 +1,46 @@
 # Use official PHP 8.4 with Apache
 FROM php:8.4-apache
 
-# Install PHP extensions needed for Laravel
+# Install system dependencies + PHP extensions
 RUN apt-get update && apt-get install -y \
     libzip-dev unzip git curl mariadb-client \
     && docker-php-ext-install pdo pdo_mysql zip
 
-# Install Composer
+# Install Composer globally
 RUN curl -sS https://getcomposer.org/installer | php \
     && mv composer.phar /usr/local/bin/composer
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy project files
+# Copy all project files
 COPY . .
 
-# Set Apache document root to Laravel's public folder
+# Set Apache document root to Laravel public folder
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
-# Ensure only one Apache MPM is enabled and enable rewrite
-RUN a2dismod mpm_event mpm_worker || true
+# Fix Apache MPM conflict + enable rewrite
 RUN a2dismod mpm_event mpm_worker \
  && a2enmod mpm_prefork \
  && a2enmod rewrite
 
-# Run composer
+# Install Laravel dependencies (optimized for production)
 RUN composer install --no-dev --optimize-autoloader
 
-# Generate app key and cache configs
-RUN php artisan key:generate
-RUN php artisan config:cache
-RUN php artisan route:cache
-RUN php artisan view:cache
+# Cache Laravel configs (safe ones only)
+RUN php artisan config:cache || true
+RUN php artisan route:cache || true
+RUN php artisan view:cache || true
 
-# Set permissions for storage and cache
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# Set proper permissions
+RUN chown -R www-data:www-data storage bootstrap/cache \
+ && chmod -R 775 storage bootstrap/cache
 
-# Configure Apache to listen on dynamic port (Railway requirement)
+# Railway uses dynamic port
 ENV PORT=8080
-RUN sed -i 's/Listen 80/Listen ${PORT}/g' /etc/apache2/ports.conf
-
 EXPOSE 8080
 
-# Start Apache
-CMD ["apache2-foreground"]
+# Start Apache with dynamic port support
+CMD sed -i "s/80/${PORT}/g" /etc/apache2/ports.conf \
+ && sed -i "s/:80/:${PORT}/g" /etc/apache2/sites-available/000-default.conf \
+ && apache2-foreground
