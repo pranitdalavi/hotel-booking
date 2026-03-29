@@ -21,8 +21,8 @@ RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available
 
 # Ensure only one Apache MPM is enabled and enable rewrite
 RUN a2dismod mpm_event mpm_worker || true
-RUN a2dismod mpm_event mpm_worker \
- && a2enmod mpm_prefork
+RUN a2dismod mpm_prefork \
+ && a2enmod mpm_event
 RUN a2enmod mpm_prefork
 RUN a2enmod rewrite
 
