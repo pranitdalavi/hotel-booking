@@ -1,5 +1,5 @@
 # Use official PHP 8.3 with Apache
-FROM php:8.3-apache
+FROM php:8.4-apache
 
 # Install PHP extensions needed for Laravel
 RUN apt-get update && apt-get install -y \
