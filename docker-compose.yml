@@ -1,32 +1,46 @@
-version: '3.8'
+version: '3.9'
 
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hotel_app
     ports:
       - "8080:80"
+    depends_on:
+      - db
     environment:
       DB_CONNECTION: mysql
       DB_HOST: db
       DB_PORT: 3306
       DB_DATABASE: hotel_booking
       DB_USERNAME: root
-      DB_PASSWORD: secret
-    depends_on:
-      - db
+      DB_PASSWORD: rootpassword
     volumes:
       - .:/var/www/html
+    networks:
+      - hotel-network
 
   db:
     image: mysql:8.0
-    restart: always
+    container_name: hotel_db
+    restart: unless-stopped
     environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: hotel_booking
-      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_USER: hoteluser
+      MYSQL_PASSWORD: hotelpass
     ports:
       - "3306:3306"
+    networks:
+      - hotel-network
     volumes:
       - db_data:/var/lib/mysql
+
+networks:
+  hotel-network:
+    driver: bridge
 
 volumes:
   db_data:
