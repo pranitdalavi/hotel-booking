@@ -33,10 +33,15 @@ RUN php artisan config:cache
 RUN php artisan route:cache
 RUN php artisan view:cache
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Set permissions for storage and cache
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-EXPOSE 80
+# Configure Apache to listen on dynamic port (Railway requirement)
+ENV PORT=8080
+RUN sed -i 's/Listen 80/Listen ${PORT}/g' /etc/apache2/ports.conf
+
+EXPOSE 8080
 
 # Start Apache
 CMD ["apache2-foreground"]
