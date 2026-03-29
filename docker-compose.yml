@@ -1,11 +1,10 @@
-version: '3.9'
-
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: hotel_app
+    command: sh -c "chmod -R 777 storage bootstrap/cache && apache2-foreground"
     ports:
       - "8080:80"
     depends_on:
@@ -31,8 +30,6 @@ services:
       MYSQL_DATABASE: hotel_booking
       MYSQL_USER: hoteluser
       MYSQL_PASSWORD: hotelpass
-    ports:
-      - "3306:3306"
     networks:
       - hotel-network
     volumes:
