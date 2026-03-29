@@ -8,7 +8,12 @@
     nixPkgs = [
         "php84", 
         "php84Packages.composer", 
-        "nodejs_20", 
+        "php84Extensions.pdo_mysql",
+        "php84Extensions.mbstring",
+        "php84Extensions.gd",
+        "php84Extensions.xml",
+        "php84Extensions.bcmath",
+        "nodejs", 
         "git"
     ]
 
@@ -23,12 +28,9 @@
         "if [ -f package.json ]; then npm run build; fi",
         "php artisan config:cache",
         "php artisan route:cache"
+        # Optional: Uncomment the line below if you want migrations to run DURING build
+        # "php artisan migrate --force" 
     ]
 
-# This is the critical part: It tells Nixpacks to keep Node/NPM in the final image
-[staticAssets]
-    path = "public"
-
 [start]
-    # We ensure the path includes the nix binaries
     cmd = "php artisan serve --host 0.0.0.0 --port $PORT"
