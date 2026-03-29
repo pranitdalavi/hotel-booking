@@ -13,25 +13,31 @@ RUN curl -sS https://getcomposer.org/installer | php \
 # Set working directory
 WORKDIR /var/www/html
 
+# Set working directory
+WORKDIR /var/www/html
+
 # Copy project files
 COPY . .
 
-# Install PHP dependencies
+# Set Apache document root to Laravel's public folder
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+
+# Enable Apache rewrite module
+RUN a2enmod rewrite
+
+# Run composer
 RUN composer install --no-dev --optimize-autoloader
 
 # Generate app key
 RUN php artisan key:generate
-
-# Cache configs/routes/views
 RUN php artisan config:cache
 RUN php artisan route:cache
 RUN php artisan view:cache
 
-# Run migrations (optional, if database ready)
-# RUN php artisan migrate --force
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Expose Apache port
-EXPOSE 10000
+EXPOSE 80
 
 # Start Apache
 CMD ["apache2-foreground"]
