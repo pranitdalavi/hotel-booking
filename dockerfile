@@ -1,17 +1,14 @@
-# Use official PHP 8.3 with Apache
+# Use official PHP 8.4 with Apache
 FROM php:8.4-apache
 
 # Install PHP extensions needed for Laravel
 RUN apt-get update && apt-get install -y \
-    libzip-dev unzip git curl \
+    libzip-dev unzip git curl mariadb-client \
     && docker-php-ext-install pdo pdo_mysql zip
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php \
     && mv composer.phar /usr/local/bin/composer
-
-# Set working directory
-WORKDIR /var/www/html
 
 # Set working directory
 WORKDIR /var/www/html
@@ -28,7 +25,7 @@ RUN a2enmod rewrite
 # Run composer
 RUN composer install --no-dev --optimize-autoloader
 
-# Generate app key
+# Generate app key and cache configs
 RUN php artisan key:generate
 RUN php artisan config:cache
 RUN php artisan route:cache
