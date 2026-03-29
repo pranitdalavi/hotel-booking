@@ -16,13 +16,24 @@
     ]
 
 [phases.install]
-    cmds = ["composer install --optimize-autoloader --no-interaction --no-scripts --ignore-platform-reqs"]
+    cmds = [
+        "composer install --optimize-autoloader --no-interaction --no-scripts --ignore-platform-reqs"
+    ]
 
 [phases.build]
     cmds = [
+        # Build frontend assets if package.json exists
         "if [ -f package.json ]; then npm install && npm run build; fi",
+        
+        # Optimize Laravel configuration
         "php artisan config:cache",
-        "php artisan route:cache"
+        "php artisan route:cache",
+        "php artisan view:cache",
+        
+        # Run Database Migrations and Seeders
+        # --force is required for production environments
+        "php artisan migrate --force",
+        "php artisan db:seed --force"
     ]
 
 [start]
