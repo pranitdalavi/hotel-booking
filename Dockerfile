@@ -34,7 +34,7 @@ RUN php artisan route:cache
 RUN php artisan view:cache
 
 # Set permissions for storage and cache
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/html/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Configure Apache to listen on dynamic port (Railway requirement)
