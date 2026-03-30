@@ -30,17 +30,21 @@ class DatabaseSeeder extends Seeder
         }
 
         // ✅ Room Types
-        $standard = RoomType::create([
-            'name' => 'Standard',
-            'total_rooms' => 5,
-            'max_adults' => 3
-        ]);
+        $standard = RoomType::updateOrCreate(
+            ['name' => 'Standard'],
+            [
+                'total_rooms' => 5,
+                'max_adults' => 3
+            ]
+        );
 
-        $deluxe = RoomType::create([
-            'name' => 'Deluxe',
-            'total_rooms' => 5,
-            'max_adults' => 3
-        ]);
+        $deluxe = RoomType::updateOrCreate(
+            ['name' => 'Deluxe'],
+            [
+                'total_rooms' => 5,
+                'max_adults' => 3
+            ]
+        );
 
         $roomTypes = [$standard, $deluxe];
 
@@ -52,32 +56,44 @@ class DatabaseSeeder extends Seeder
                 $availableRooms = ($i % 7 === 0) ? 0 : 5;
                 $basePrice = $room->name === 'Standard' ? 3000 + ($i * 50) : 5000 + ($i * 80);
 
-                Inventory::create([
-                    'room_type_id' => $room->id,
-                    'date' => $date,
-                    'available_rooms' => $availableRooms,
-                ]);
+                Inventory::updateOrCreate(
+                    [
+                        'room_type_id' => $room->id,
+                        'date' => $date,
+                    ],
+                    [
+                        'available_rooms' => $availableRooms,
+                    ]
+                );
 
-                Price::create([
-                    'room_type_id' => $room->id,
-                    'date' => $date,
-                    'price' => $basePrice,
-                ]);
+                Price::updateOrCreate(
+                    [
+                        'room_type_id' => $room->id,
+                        'date' => $date,
+                    ],
+                    [
+                        'price' => $basePrice,
+                    ]
+                );
             }
         }
 
         // ✅ Discounts
 
-        Discount::create([
-            'type' => 'long_stay',
-            'value' => 10,
-            'min_days' => 3
-        ]);
+        Discount::updateOrCreate(
+            ['type' => 'long_stay'],
+            [
+                'value' => 10,
+                'min_days' => 3
+            ]
+        );
 
-        Discount::create([
-            'type' => 'last_minute',
-            'value' => 15,
-            'days_before' => 2
-        ]);
+        Discount::updateOrCreate(
+            ['type' => 'last_minute'],
+            [
+                'value' => 15,
+                'days_before' => 2
+            ]
+        );
     }
 }
