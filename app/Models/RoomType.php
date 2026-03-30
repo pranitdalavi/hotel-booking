@@ -14,9 +14,7 @@ class RoomType extends Model
         'total_rooms',
         'max_adults',
     ];
-
-    // 🔹 Relationships
-
+    
     public function inventories()
     {
         return $this->hasMany(Inventory::class);

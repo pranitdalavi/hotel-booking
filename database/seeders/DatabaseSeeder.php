@@ -29,7 +29,7 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // ✅ Room Types
+        // Room Types START
         $standard = RoomType::updateOrCreate(
             ['name' => 'Standard'],
             [
@@ -45,10 +45,11 @@ class DatabaseSeeder extends Seeder
                 'max_adults' => 3
             ]
         );
+        // Room Types END
 
         $roomTypes = [$standard, $deluxe];
 
-        // ✅ Next 30 Days Data
+        // Next 30 Days Data
         for ($i = 0; $i < 30; $i++) {
             $date = Carbon::today()->addDays($i);
 
@@ -78,7 +79,7 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // ✅ Discounts
+        // Discounts START
 
         Discount::updateOrCreate(
             ['type' => 'long_stay'],
@@ -95,5 +96,7 @@ class DatabaseSeeder extends Seeder
                 'days_before' => 2
             ]
         );
+
+        // Discounts END
     }
 }

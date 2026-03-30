@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('discounts', function (Blueprint $table) {
             $table->id();
             $table->enum('type', ['long_stay', 'last_minute']);
-            $table->integer('value'); // %
+            $table->integer('value');
             $table->integer('min_days')->nullable();
             $table->integer('days_before')->nullable();
             $table->timestamps();

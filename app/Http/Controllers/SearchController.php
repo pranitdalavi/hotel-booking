@@ -11,13 +11,16 @@ use Carbon\Carbon;
 
 class SearchController extends Controller
 {
+    // Display the search form
     public function index()
     {
         return view('search');
     }
 
+    // Handle the search request and return available rooms with pricing
     public function search(Request $request)
     {
+        // Validate input
         $request->validate([
             'check_in' => 'required|date|after_or_equal:today',
             'check_out' => 'required|date|after:check_in',
@@ -38,6 +41,7 @@ class SearchController extends Controller
 
         $results = [];
 
+        // Check availability and calculate pricing for each room type
         foreach ($roomTypes as $room) {
             if ($guests > $room->max_adults) {
                 continue;

@@ -19,9 +19,7 @@ class Price extends Model
         'date' => 'date',
         'price' => 'float',
     ];
-
-    // 🔹 Relationships
-
+    
     public function roomType()
     {
         return $this->belongsTo(RoomType::class);

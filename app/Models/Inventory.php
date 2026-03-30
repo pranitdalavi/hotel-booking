@@ -18,9 +18,7 @@ class Inventory extends Model
     protected $casts = [
         'date' => 'date',
     ];
-
-    // 🔹 Relationships
-
+    
     public function roomType()
     {
         return $this->belongsTo(RoomType::class);

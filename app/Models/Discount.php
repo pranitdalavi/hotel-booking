@@ -21,9 +21,7 @@ class Discount extends Model
         'min_days' => 'integer',
         'days_before' => 'integer',
     ];
-
-    // 🔹 Helper Methods (Optional but Good Practice)
-
+    
     public function isLongStay()
     {
         return $this->type === 'long_stay';
